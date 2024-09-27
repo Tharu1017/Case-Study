@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Admin Login</title>
+    <link
+      href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <style>
+      body {
+        font-family: "Roboto", sans-serif;
+        background-color: #f4f4f9;
+      }
+
+      .login-container {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+      }
+
+      .login-box {
+        background: #fff;
+        padding: 40px;
+        box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+        border-radius: 8px;
+      }
+
+      .login-box h2 {
+        text-align: center;
+        margin-bottom: 30px;
+      }
+
+      .btn-primary {
+        width: 100%;
+      }
+
+      .error-msg {
+        color: red;
+        display: none;
+        text-align: center;
+        margin-top: 10px;
+      }
+      /* Back to Home button in the upper-left corner */
+      .back-to-home {
+        position: absolute;
+        top: 10px;
+        left: 10px;
+        padding: 5px 10px;
+        background-color: #6c757d;
+        color: white;
+        border-radius: 5px;
+        text-decoration: none;
+      }
+      .back-to-home:hover {
+        background-color: #5a6268;
+        text-decoration: none;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="login-container">
+      <div class="login-box">
+        <!-- Back to Home Button -->
+        <a href="index.html" class="back-to-home">Back to Home</a>
+        <h2>Admin Login</h2>
+        <form id="adminLoginForm">
+          <div class="form-group">
+            <label for="username">Username</label>
+            <input type="text" class="form-control" id="username" required />
+          </div>
+
+          <div class="form-group">
+            <label for="password">Password</label>
+            <input
+              type="password"
+              class="form-control"
+              id="password"
+              required
+            />
+          </div>
+          <button type="submit" class="btn btn-primary">Login</button>
+          <p class="error-msg" id="errorMsg">Invalid Username or Password</p>
+        </form>
+      </div>
+    </div>
+
+    <script>
+      // Simple admin login authentication
+      const loginForm = document.getElementById("adminLoginForm");
+      const errorMsg = document.getElementById("errorMsg");
+
+      loginForm.addEventListener("submit", function (e) {
+        e.preventDefault();
+
+        // Hardcoded credentials (for demonstration purposes)
+        const adminUsername = "admin";
+        const adminPassword = "password123";
+
+        const enteredUsername = document.getElementById("username").value;
+        const enteredPassword = document.getElementById("password").value;
+
+        if (
+          enteredUsername === adminUsername &&
+          enteredPassword === adminPassword
+        ) {
+          // Successful login, redirect to admin dashboard
+          window.location.href = "Admin.html";
+        } else {
+          // Show error message if login fails
+          errorMsg.style.display = "block";
+        }
+      });
+    </script>
+  </body>
+</html>
