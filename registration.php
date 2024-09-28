@@ -1,3 +1,90 @@
+<?php  
+require_once "PHP/db_connection.php"; // database connection file imported
+
+function encodeIndexNumber($indexNumber) {
+    $base64Encoded = base64_encode($indexNumber);
+    $customEncoded = strtr($base64Encoded, [
+        '+' => 'U', // Replace '+' with 'U'
+        '/' => 'S', // Replace '/' with 'S'
+        '=' => 'D'  // Replace '=' with 'D'
+    ]);
+
+    $finalEncoded = substr(str_shuffle($customEncoded), 0, 8); 
+
+    return $finalEncoded;
+}
+
+if (isset($_POST['register'])) {
+    $fullname   = $_POST['fullname'];
+    $faculty    = $_POST['faculty'];
+    $regNumber  = $_POST['regNumber'];
+    $acedemicyr = $_POST['acedemicyr'];
+    
+    // Check if the student is already registered
+    $checkQuery = "SELECT * FROM `student_table` WHERE `UniRegNo` = ?";
+    $checkStmt  = $conn->prepare($checkQuery);
+    $checkStmt->bind_param("s", $regNumber);
+    $checkStmt->execute();
+    $checkStmt->store_result();
+
+    if ($checkStmt->num_rows > 0) {
+        setcookie('regNo', $regNumber, time() + (86400 * 30), "/", "", true, true); // Set cookie before any output
+        echo "<script>alert('You are already registered ...')</script>";
+        echo "<script>window.location.href = 'upload.php';</script>"; // Use JS for redirection
+    } else {
+        // Generate a unique ID using base64 encoding
+        $combineUid = encodeIndexNumber($regNumber);
+
+        // Insert the new registration details into the database
+        $query = "INSERT INTO `Student_Table` (`FullName`, `Faculty`, `UniRegNo`, `AcademicYear`, `UniqueID`) VALUES (?, ?, ?, ?, ?)";
+        $stmt  = $conn->prepare($query);
+        $stmt->bind_param("sssss", $fullname, $faculty, $regNumber, $acedemicyr, $combineUid);
+
+        if ($stmt->execute()) {
+            // Registration success
+            setcookie('regNo', $regNumber, time() + (86400 * 30), "/", "", true, true); // Set cookie before any output
+            echo "<script>alert('Registration successful')</script>";
+            echo "<script>alert('Congratulations! Your unique ID is: {$combineUid}')</script>";
+            echo "<script>window.location.href = 'upload.php';</script>"; // Use JS for redirection
+        } else {
+            // Registration failed
+            echo "<script>alert('Something went wrong!')</script>";
+            echo "<script>window.location.href = 'registration.php';</script>"; // Use JS for redirection
+        }
+        $stmt->close();
+    }
+    $checkStmt->close();
+}
+
+// Handle login verification
+if (isset($_POST['login'])) {
+    $regNumber = $_POST['regNo'];
+    $uniqueId  = $_POST['uniqueId'];
+
+    // Check if the provided credentials match any records in the database
+    $loginQuery = "SELECT * FROM `student_table` WHERE `UniRegNo` = ? AND `UniqueID` = ?";
+    $loginStmt  = $conn->prepare($loginQuery);
+    $loginStmt->bind_param("ss", $regNumber, $uniqueId);
+    $loginStmt->execute();
+    $loginStmt->store_result();
+
+    if ($loginStmt->num_rows > 0) {
+        // Credentials match, login successful
+        setcookie('regNo', $regNumber, time() + (86400 * 30), "/", "", true, true); // Set cookie before any output
+        echo "<script>alert('Login successful!')</script>";
+        echo "<script>window.location.href = 'student_dahboard.php';</script>"; // Redirect to upload page
+    } else {
+        // Invalid credentials
+        echo "<script>alert('Invalid registration details. Please try again.')</script>";
+        echo "<script>window.location.href = 'registration.php';</script>"; // Redirect to registration page
+    }
+
+    $loginStmt->close();
+}
+?>
+
+
+
 <!DOCTYPE html>
 <html lang="en">
   <head>
@@ -94,13 +181,14 @@
       <!-- Verification Form (hidden initially) -->
       <div class="verification-form" style="display: none">
         <h3>Verify Your Details</h3>
-        <form id="verification-form">
+        <form id="verification-form" method = "POST" action="registration.php" >
           <div class="form-group">
             <label for="verifyID">Registration ID</label>
             <input
               type="text"
               class="form-control"
               id="verifyID"
+              name="uniqueId"
               placeholder="Enter your registration ID"
               required
             />
@@ -111,11 +199,12 @@
               type="text"
               class="form-control"
               id="verifyRegNumber"
+              name="regNo"
               placeholder="Enter your university registration number"
               required
             />
           </div>
-          <button type="submit" class="btn btn-primary">Verify</button>
+          <button type="submit" class="btn btn-primary" name="login">Verify</button>
         </form>
       </div>
 
@@ -171,36 +260,6 @@
           document.querySelector(".verification-form").style.display = "none";
           document.querySelector(".registration-form").style.display = "block";
         });
-
-    
-
-      // Handle Verification Form Submission
-      document
-        .getElementById("verification-form")
-        .addEventListener("submit", function (event) {
-          event.preventDefault();
-          const registeredID = "123456"; // Dummy registered ID
-          const registeredRegNumber = "U123456"; // Dummy registration number
-          const userID = document.getElementById("verifyID").value;
-          const userRegNumber =
-            document.getElementById("verifyRegNumber").value;
-
-          if (
-            userID === registeredID &&
-            userRegNumber === registeredRegNumber
-          ) {
-            $("#successModal .modal-title").text("Welcome Back");
-            $("#successModal .modal-body").text("Welcome back, User Name!");
-            $("#successModal").modal("show");
-          } else {
-            $("#successModal .modal-title").text("Verification Failed");
-            $("#successModal .modal-body").text(
-              "Invalid registration details. Please try again."
-            );
-            $("#successModal").modal("show");
-          }
-        });
-
       // Handle Modal OK Button Redirect
       document
         .getElementById("redirect-btn")
@@ -213,63 +272,3 @@
   </body>
 </html>
 
-<?php  
-require_once "PHP/db_connection.php"; // database connection file imported
-session_start();
-
-function encodeIndexNumber($indexNumber) {
-  
-  $base64Encoded = base64_encode($indexNumber);
-  $customEncoded = strtr($base64Encoded, [
-      '+' => 'U', // Replace '+' with 'U'
-      '/' => 'S', // Replace '/' with 'S'
-      '=' => 'D'  // Replace '=' with 'D'
-  ]);
-
-  $finalEncoded = substr(str_shuffle($customEncoded), 0, 8); 
-
-  return $finalEncoded;
-}
-
-if(isset($_POST['register'])){
-  $fullname   = $_POST['fullname'];
-  $faculty    = $_POST['faculty'];
-  $regNumber  = $_POST['regNumber'];
-  $acedemicyr = $_POST['acedemicyr'];
-  
-  // Check if the student is already registered
-  $checkQuery = "SELECT * FROM `student_table` WHERE `UniRegNo` = ?";
-  $checkStmt  = $conn->prepare($checkQuery);
-  $checkStmt->bind_param("s", $regNumber);
-  $checkStmt->execute();
-  $checkStmt->store_result();
-
-  if ($checkStmt->num_rows > 0) {
-    echo "<script>alert('You are already registered ...')</script>";
-    echo "<script>window.location.href = 'upload.php';</script>"; // Use JS for redirection
-  } else {
-    // Generate a unique ID using base64 encoding
-    $combineUid = encodeIndexNumber($regNumber);
-
-    // Insert the new registration details into the database
-    $query = "INSERT INTO `Student_Table` (`FullName`, `Faculty`, `UniRegNo`, `AcademicYear`, `UniqueID`) VALUES (?, ?, ?, ?, ?)";
-    $stmt  = $conn->prepare($query);
-    $stmt->bind_param("sssss", $fullname, $faculty, $regNumber, $acedemicyr, $combineUid);
-
-    if ($stmt->execute()) {
-      // Registration success
-      echo "<script>alert('Registration successful')</script>";
-      echo "<script>alert('Congratulations! Your unique ID is: {$combineUid}')</script>";
-      $_SESSION['unique_id'] = $combineUid;
-      echo "<script>window.location.href = 'upload.php';</script>"; // Use JS for redirection
-
-    } else {
-      // Registration failed
-      echo "<script>alert('Something went wrong!')</script>";
-      echo "<script>window.location.href = 'registration.php';</script>"; // Use JS for redirection
-    }
-    $stmt->close();
-  }
-  $checkStmt->close();
-}
-?>
