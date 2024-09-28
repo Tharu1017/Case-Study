@@ -1,81 +1,3 @@
-<?php
-require_once "PHP/db_connection.php"; // Database connection file
-
-
-function encodeIndexNumber($regNumber) {
-    
-    return base64_encode($regNumber);
-}
-
-// Check if the regNo cookie is set
-if (isset($_COOKIE['regNo'])) {
-    $regNumber = $_COOKIE['regNo'];
-
-    if (isset($_POST['submit'])) {
-        $fullname = $_POST['fullName'];
-        $email = $_POST['email'];
-        $interests = $_POST['interests'];
-
-        // Handle file upload
-        if (isset($_FILES['resume']) && $_FILES['resume']['error'] == 0) {
-            $resume = $_FILES['resume'];
-
-            // Check file type (only allow PDF)
-            $fileType = mime_content_type($resume['tmp_name']);
-            if ($fileType === 'application/pdf') {
-                // Check file size (max 2MB)
-                if ($resume['size'] <= 2 * 1024 * 1024) {
-                    // Create unique file name
-                    $uniqueId = uniqid($regNumber . "_", true);
-                    $fileName = $uniqueId . ".pdf";
-                    
-                    // Define the upload directory
-                    $uploadDir = "uploads/"; 
-                    
-                    // Check and create the directory recursively
-                    if (!is_dir($uploadDir)) {
-                        mkdir($uploadDir, 0755, true); // Create nested directories with the correct permissions
-                    }
-
-                    $filePath = $uploadDir . $fileName;
-
-                    // Move the uploaded file to the target directory
-                    if (move_uploaded_file($resume['tmp_name'], $filePath)) {
-                        // Encode the registration number
-                        $combineUid = encodeIndexNumber($regNumber);
-
-                        // Insert into database
-                        $query = "INSERT INTO `student_job_table`(`UniRegNo`, `Email`, `Interests`) VALUES (?, ?, ?)";
-                        $stmt = $conn->prepare($query);
-                        $stmt->bind_param("sss", $regNumber, $email, $interests);
-
-                        if ($stmt->execute()) {
-                            echo "<script>alert('Upload successful!')</script>";
-                            echo "<script>window.location.href = 'student_dash_board.php';</script>";
-                        } else {
-                            echo "<script>alert('Database insert failed!')</script>";
-                        }
-                        $stmt->close();
-                    } else {
-                        echo "<script>alert('Failed to move uploaded file.')</script>";
-                    }
-                } else {
-                    echo "<script>alert('File exceeds maximum allowed size of 2MB.')</script>";
-                }
-            } else {
-                echo "<script>alert('Only PDF files are allowed.')</script>";
-            }
-        } else {
-            echo "<script>alert('Please upload a valid resume file.')</script>";
-        }
-    }
-} else {
-    // Redirect to registration if cookie is not found
-    echo "<script>window.location.href = 'registration.php';</script>";
-}
-?>
-
-
 <!DOCTYPE html>
 <html lang="en">
   <head>
@@ -92,7 +14,7 @@ if (isset($_COOKIE['regNo'])) {
     <!-- Navigation Bar -->
     <nav class="navbar navbar-expand-lg navbar-light">
       <a class="navbar-brand" href="#">
-        <img src="image/logo2.jpg" alt="Portal Logo" width="50" />
+        <img src="immmage/logo2.jpg" alt="Portal Logo" width="50" />
       </a>
       <button
         class="navbar-toggler"
@@ -123,7 +45,7 @@ if (isset($_COOKIE['regNo'])) {
     <!-- Upload Resume Form -->
     <div class="container mt-5">
       <h2>Upload Your Resume</h2>
-      <form action="upload.php" enctype="multipart/form-data" method="POST" id="resume-form">
+      <form>
         <div class="form-group">
           <label for="name">Full Name</label>
           <input
@@ -131,8 +53,6 @@ if (isset($_COOKIE['regNo'])) {
             class="form-control"
             id="name"
             placeholder="Enter your full name"
-            name="fullName"
-            required
           />
         </div>
         <div class="form-group">
@@ -142,8 +62,6 @@ if (isset($_COOKIE['regNo'])) {
             class="form-control"
             id="email"
             placeholder="Enter your email"
-            name="email"
-            required
           />
         </div>
 
@@ -155,11 +73,10 @@ if (isset($_COOKIE['regNo'])) {
             class="form-control"
             id="interests-input"
             placeholder="Type your interests and press Enter"
-            name="interests"
-            required
           />
           <div id="interest-tags" class="mt-2"></div>
         </div>
+
         <div class="form-group">
           <label for="resume">Upload Resume (PDF, max 2MB)</label>
           <input
@@ -167,7 +84,6 @@ if (isset($_COOKIE['regNo'])) {
             class="form-control-file"
             id="resume"
             accept=".pdf"
-            name="resume"
             required
           />
           <small
@@ -179,7 +95,7 @@ if (isset($_COOKIE['regNo'])) {
           </small>
         </div>
 
-        <button type="submit" class="btn btn-primary" name="submit">Submit</button>
+        <button type="submit" class="btn btn-primary">Submit</button>
       </form>
     </div>
 
@@ -193,7 +109,7 @@ if (isset($_COOKIE['regNo'])) {
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.2/dist/umd/popper.min.js"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
 
-    <!-- Custom Script for Interests Tagging -->
+    <!-- Custom Script for Interests Tagging (if needed) -->
     <script>
       const input = document.getElementById("interests-input");
       const tagContainer = document.getElementById("interest-tags");
@@ -221,19 +137,29 @@ if (isset($_COOKIE['regNo'])) {
         }
       });
 
-      document.getElementById("resume-form").addEventListener("submit", function (event) {
-        var resumeInput = document.getElementById("resume");
-        var fileSize = resumeInput.files[0].size / 1024 / 1024; // Convert bytes to MB
+      document
+        .getElementById("resume-form")
+        .addEventListener("submit", function (event) {
+          var resumeInput = document.getElementById("resume");
+          var fileSize = resumeInput.files[0].size / 1024 / 1024; // Convert bytes to MB
 
-        if (fileSize > 2) {
-          // If file size is greater than 2MB, show warning and prevent form submission
-          document.getElementById("file-size-warning").style.display = "block";
-          event.preventDefault();
-        } else {
-          document.getElementById("file-size-warning").style.display = "none";
-        }
-      });
+          if (fileSize > 2) {
+            // If file size is greater than 2MB, show warning and prevent form submission
+            document.getElementById("file-size-warning").style.display =
+              "block";
+            event.preventDefault();
+          } else {
+            document.getElementById("file-size-warning").style.display = "none";
+          }
+        });
     </script>
   </body>
+</html>
+<?php
+if (isset($_SESSION['unique_id'])) {
 
-  </html>
+  
+  
+}
+  
+?>
