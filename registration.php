@@ -72,7 +72,7 @@ if (isset($_POST['login'])) {
         // Credentials match, login successful
         setcookie('regNo', $regNumber, time() + (86400 * 30), "/", "", true, true); // Set cookie before any output
         echo "<script>alert('Login successful!')</script>";
-        echo "<script>window.location.href = 'student_dahboard.php';</script>"; // Redirect to upload page
+        echo "<script>window.location.href = 'student_dashboard.php';</script>"; // Redirect to upload page
     } else {
         // Invalid credentials
         echo "<script>alert('Invalid registration details. Please try again.')</script>";

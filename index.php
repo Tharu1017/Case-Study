@@ -41,7 +41,11 @@
           </li>
           <li class="nav-item">
             <a class="nav-link" href="company_registration.php">Companies</a>
+          </li><li class="nav-item">
+            <a class="nav-link" href="Admin_Login.php">Admin</a>
+            <!-- Added Admin Link -->
           </li>
+
         </ul>
       </div>
     </nav>
