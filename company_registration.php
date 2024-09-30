@@ -153,10 +153,10 @@ if (isset($_POST['login'])) {
             <a class="nav-link" href="index.html">Home</a>
           </li>
           <li class="nav-item">
-            <a class="nav-link" href="registration.html">Upload Resume</a>
+            <a class="nav-link" href="registration.php">Upload Resume</a>
           </li>
           <li class="nav-item">
-            <a class="nav-link" href="company_registration.html">Companies</a>
+            <a class="nav-link" href="company_registration.php">Companies</a>
           </li>
         </ul>
       </div>

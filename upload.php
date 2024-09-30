@@ -51,7 +51,7 @@ if (isset($_COOKIE['regNo'])) {
 
                         if ($stmt->execute()) {
                             echo "<script>alert('Upload successful!')</script>";
-                            echo "<script>window.location.href = 'student_dash_board.php';</script>";
+                            echo "<script>window.location.href = 'student_dashboard.php';</script>";
                         } else {
                             echo "<script>alert('Database insert failed!')</script>";
                         }
