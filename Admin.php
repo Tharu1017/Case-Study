@@ -33,12 +33,26 @@ if (isset($_GET['delete_company'])) {
 if (isset($_GET['delete_student'])) {
     $studentId = $_GET['delete_student'];
     $deleteStudentQuery = "DELETE FROM `student_table` WHERE `UniRegNo` = ?";
+    $deleteStudentJobQuery = "DELETE FROM `student_job_table` WHERE `UniRegNo` = ?";
+
+    // Prepare statements
     $deleteStudentStmt = $conn->prepare($deleteStudentQuery);
+    $deleteStudentJobStmt = $conn->prepare($deleteStudentJobQuery);
+    
+    // Bind parameters
     $deleteStudentStmt->bind_param("s", $studentId);
-    if ($deleteStudentStmt->execute()) {
-        echo "<script>alert('Student deleted successfully.'); window.location.href = 'admin.php';</script>";
+    $deleteStudentJobStmt->bind_param("s", $studentId);
+
+    // Execute the job deletion first
+    if ($deleteStudentJobStmt->execute()) {
+        // Now execute the student deletion
+        if ($deleteStudentStmt->execute()) {
+            echo "<script>alert('Student deleted successfully.'); window.location.href = 'admin.php';</script>";
+        } else {
+            echo "<script>alert('Failed to delete the student.');</script>";
+        }
     } else {
-        echo "<script>alert('Failed to delete the student.');</script>";
+        echo "<script>alert('Failed to delete the student job records.');</script>";
     }
 }
 ?>

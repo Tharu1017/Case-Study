@@ -106,13 +106,17 @@ if (isset($_POST['login'])) {
       <div class="collapse navbar-collapse" id="navbarNav">
         <ul class="navbar-nav ml-auto">
           <li class="nav-item">
-            <a class="nav-link" href="index.html">Home</a>
+            <a class="nav-link" href="index.php">Home</a>
           </li>
           <li class="nav-item">
-            <a class="nav-link" href="registration.html">Upload Resume</a>
+            <a class="nav-link" href="registration.php">Upload Resume</a>
           </li>
           <li class="nav-item">
-            <a class="nav-link" href="company_registration.html">Companies</a>
+            <a class="nav-link" href="company_registration.php">Companies</a>
+          </li>
+          </li><li class="nav-item">
+            <a class="nav-link" href="Admin_Login.php">Admin</a>
+            <!-- Added Admin Link -->
           </li>
         </ul>
       </div>
@@ -266,7 +270,7 @@ if (isset($_POST['login'])) {
         .addEventListener("click", function () {
           $("#successModal").modal("hide");
           // Redirect to the upload page after registration
-          window.location.href = "upload.html"; // Change this to your upload page URL
+          window.location.href = "upload.php"; // Change this to your upload page URL
         });
     </script>
   </body>
